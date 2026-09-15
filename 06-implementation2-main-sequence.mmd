@@ -1,0 +1,39 @@
+sequenceDiagram
+    actor User
+    participant ST as ShapeTester
+    participant R as Rectangle
+    participant S as Square
+    participant P as Point
+    participant L as Line
+    participant T as Triangle
+    participant C as Circle
+
+    User->>ST: main()
+
+    ST->>R: new Rectangle(5, 10)
+    ST->>R: calcArea()
+    R->>R: height * width
+    R-->>ST: 50
+
+    ST->>S: new Square(5)
+    ST->>S: calcArea()
+    S->>S: side * side
+    S-->>ST: 25
+
+    ST->>P: new Point(0, 0)
+    ST->>P: calcArea()
+    P-->>ST: 0
+
+    ST->>L: new Line(p1, p2)
+    ST->>L: calcArea()
+    L-->>ST: 0
+
+    ST->>T: new Triangle(10, 10)
+    ST->>T: calcArea()
+    T->>T: (height * width) / 2
+    T-->>ST: 50
+
+    ST->>C: new Circle(10)
+    ST->>C: calcArea()
+    C->>C: PI * radius * radius
+    C-->>ST: 314

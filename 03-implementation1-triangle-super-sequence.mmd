@@ -1,0 +1,28 @@
+sequenceDiagram
+    actor User
+    participant ST as ShapeTester
+    participant T as Triangle
+    participant S as Shape
+
+    User->>ST: main()
+
+    ST->>T: new Triangle(10, 10)
+
+    activate T
+    T->>T: height = 10
+    T->>T: width = 10
+    deactivate T
+
+    ST->>T: calcArea()
+
+    activate T
+    T->>S: super.calcArea()
+
+    activate S
+    S->>S: height * width
+    S-->>T: 100
+    deactivate S
+
+    T->>T: 100 / 2
+    T-->>ST: 50
+    deactivate T
