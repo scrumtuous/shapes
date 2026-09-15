@@ -1,0 +1,13 @@
+classDiagram
+    direction LR
+    class Loan {
+        -dueDate Date
+        -returnDate Date
+        +isOverdue() boolean
+        +calculateLateFee() double
+    }
+    class Book {
+        -isbn String
+        -title String
+    }
+    Loan "*" o--> "1" Book : refers to

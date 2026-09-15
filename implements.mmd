@@ -1,0 +1,11 @@
+classDiagram
+    direction LR
+    class Loanable {
+        <<interface>>
+        +calculateDuration() int
+    }
+    class Book {
+        -isbn String
+        -title String
+    }
+    Book ..|> Loanable : implements
