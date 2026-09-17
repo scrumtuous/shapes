@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    participant Caller
+    participant C as Client
+    participant H as Holding
+    participant P as Portfolio
+    participant PLS as PriceLookupService
+    participant FLS as FeeLookupService
+
+    Caller->>C: updateHoldings(asset, quantity, buy)
+
+    alt buy == true
+        C->>H: new Holding(asset, quantity)
+        C->>P: holdings.add(holding)
+        C->>PLS: lookup(asset.symbol)
+        PLS-->>C: price
+        C->>FLS: lookup(asset)
+        FLS-->>C: fee
+        C->>C: totalCost = price * quantity + fee
+        C->>P: reduceCashHoldings(totalCost)
+    else buy == false
+        Note over C: No sell-side behavior is implemented.
+    end

@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant SE as SettlementEngine
+    participant CLS as ClientLookupService
+    participant C as Client
+    participant P as Portfolio
+    participant OP as OrderProcessor
+
+    User->>SE: main(args)
+    SE->>CLS: lookup("Alice Chen")
+    CLS->>CLS: new Asset("USD", CASH)
+    CLS->>CLS: new Holding(cash, 1_000_000)
+    CLS->>C: new Client()
+    CLS->>C: name = "Alice Chen"
+    CLS->>P: client.portfolio.holdings.add(cashHolding)
+    CLS-->>SE: client
+
+    SE->>SE: new Asset("AAPL", EQUITY)
+    SE->>SE: new OrderRequest(client, asset, 100, true)
+    Note over SE: Current constructor does not assign buySide,
+so orderRequest.buySide remains false.
+    SE->>OP: send(orderRequest)
+
+    OP->>OP: clientHasInSuffientFunds(orderRequest)
+    OP->>OP: stockLacksLiquidity(orderRequest)
+    OP->>C: updateHoldings(asset, 100, false)
+    Note over C: Client only performs work when buy == true,
+so no holding or cash change occurs here.
+    OP-->>SE: OrderResponse(200, "Success")

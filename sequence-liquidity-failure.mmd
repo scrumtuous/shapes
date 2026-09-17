@@ -1,0 +1,14 @@
+sequenceDiagram
+    autonumber
+    participant Caller
+    participant OP as OrderProcessor
+
+    Caller->>OP: send(orderRequest)
+    OP->>OP: clientHasInSuffientFunds(orderRequest)
+    OP->>OP: stockLacksLiquidity(orderRequest)
+
+    alt stock lacks liquidity == true
+        OP-->>Caller: OrderResponse(422, "Stock Lacks Liquidity.")
+    else stock lacks liquidity == false
+        OP->>OP: continue to client update
+    end

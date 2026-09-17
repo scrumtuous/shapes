@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    participant Caller
+    participant CLS as ClientLookupService
+    participant A as Asset
+    participant H as Holding
+    participant C as Client
+    participant P as Portfolio
+
+    Caller->>CLS: lookup(name)
+    CLS->>A: new Asset("USD", CASH)
+    CLS->>H: new Holding(cash, 1_000_000)
+    CLS->>C: new Client()
+    CLS->>C: name = name
+    CLS->>P: client.portfolio.holdings.add(holding)
+    CLS-->>Caller: client

@@ -1,0 +1,13 @@
+sequenceDiagram
+    autonumber
+    participant Caller
+    participant OP as OrderProcessor
+
+    Caller->>OP: send(orderRequest)
+    OP->>OP: clientHasInSuffientFunds(orderRequest)
+
+    alt insufficient funds == true
+        OP-->>Caller: OrderResponse(418, "User is a teapot.")
+    else insufficient funds == false
+        OP->>OP: continue to liquidity check
+    end

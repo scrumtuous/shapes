@@ -1,0 +1,115 @@
+classDiagram
+    direction LR
+
+    class Asset {
+        ~String symbol
+        ~AssetClass assetClass
+        +Asset(String symbol, AssetClass assetClass)
+    }
+
+    class AssetClass {
+        <<enumeration>>
+        EQUITY
+        CASH
+        BOND
+        CRYPTO
+    }
+
+    class Holding {
+        ~Asset asset
+        ~int quantity
+        +Holding(Asset asset, int quantity)
+    }
+
+    class Portfolio {
+        +List~Holding~ holdings
+        +getEquityHoldings() List~Asset~
+        +getCryptoHoldings() List~Asset~
+        +getBondHoldings() List~Asset~
+        +getCashHoldings() List~Asset~
+        +getTotalAssetValues() double
+        +getValueOfCashHoldings() double
+        +updateHoldings(Asset asset, int quantity, boolean buy) void
+        +reduceCashHoldings(double dollarAmount) void
+        +increaseCashHoldings(double dollarAmount) void
+    }
+
+    class Client {
+        +String name
+        +Portfolio portfolio
+        ~PriceLookupService priceLookupService$
+        ~FeeLookupService feeLookupService$
+        +updateHoldings(Asset asset, int quantity, boolean buy) void
+    }
+
+    class OrderRequest {
+        ~Asset asset
+        ~Client client
+        ~int quantity
+        ~boolean buySide
+        +OrderRequest(Client client, Asset asset, int quantity, boolean buySide)
+    }
+
+    class OrderResponse {
+        ~int statusCode
+        ~String statusMessage
+        +OrderResponse(int statusCode, String statusMessage)
+    }
+
+    class OrderProcessor {
+        +send(OrderRequest orderRequest) OrderResponse$
+        -clientHasInSuffientFunds(OrderRequest orderRequest) boolean$
+        -stockLacksLiquidity(OrderRequest orderRequest) boolean$
+    }
+
+    class SettlementEngine {
+        ~ClientLookupService clientLookupService$
+        ~PriceLookupService priceLookupService$
+        +main(String[] args) void$
+    }
+
+    class LookupService~T,K~ {
+        <<abstract>>
+        +lookup(K name) T*
+    }
+
+    class ClientLookupService {
+        +lookup(String name) Client
+    }
+
+    class FeeLookupService {
+        +lookup(Asset asset) Double
+    }
+
+    class PriceLookupService {
+        +lookup(String name) Double
+    }
+
+    Asset --> AssetClass : classified as
+    Holding --> Asset : references
+    Portfolio *-- "0..*" Holding : holdings
+    Client *-- Portfolio : portfolio
+
+    OrderRequest --> Client : client
+    OrderRequest --> Asset : asset
+    OrderProcessor ..> OrderRequest : processes
+    OrderProcessor ..> OrderResponse : creates
+    OrderProcessor ..> Client : updates
+
+    Client ..> PriceLookupService : price lookup
+    Client ..> FeeLookupService : fee lookup
+
+    SettlementEngine ..> ClientLookupService : uses
+    SettlementEngine ..> PriceLookupService : has reference
+    SettlementEngine ..> Asset : creates
+    SettlementEngine ..> OrderRequest : creates
+    SettlementEngine ..> OrderProcessor : invokes
+    SettlementEngine ..> OrderResponse : receives
+
+    LookupService~T,K~ <|-- ClientLookupService
+    LookupService~T,K~ <|-- FeeLookupService
+    LookupService~T,K~ <|-- PriceLookupService
+
+    ClientLookupService ..> Client : creates
+    ClientLookupService ..> Asset : creates USD cash
+    ClientLookupService ..> Holding : creates cash holding
