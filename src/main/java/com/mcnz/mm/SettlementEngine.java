@@ -1,12 +1,10 @@
 package com.mcnz.mm;
 
-import com.mcnz.mm.service.ClientLookupService;
-import com.mcnz.mm.service.PriceLookupService;
-
+import com.mcnz.mm.service.*;
 public class SettlementEngine {
 	
-	static ClientLookupService clientLookupService = new ClientLookupService();
-	static PriceLookupService priceLookupService = new PriceLookupService();
+	static ClientLookupService clientLookupService = new MockClientLookupService();
+	static PriceLookupService priceLookupService = new MockPriceLookupService();
 
 	public static void main(String[] args) {
 		Client client = clientLookupService.lookup("Alice Chen");
@@ -15,5 +13,4 @@ public class SettlementEngine {
 		OrderResponse response = OrderProcessor.send(orderRequest);
 
 	}
-
 }
