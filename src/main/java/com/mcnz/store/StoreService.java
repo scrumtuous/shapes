@@ -4,10 +4,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-@Service
 public class StoreService {
 
     private final CustomerRepository customerRepository;
@@ -23,7 +20,7 @@ public class StoreService {
         this.customerRepository = customerRepository;
     }
 
-    @Transactional
+    
     public void processPurchases() {
 
         for (String[] row : StorePurchasesData.ROWS) {

@@ -2,9 +2,8 @@ package com.mcnz.store;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+
 public class App implements CommandLineRunner {
 
     private final StoreService storeService;
@@ -17,7 +16,7 @@ public class App implements CommandLineRunner {
         SpringApplication.run(App.class, args);
     }
 
-    @Override
+    
     public void run(String... args) throws Exception {
         storeService.processPurchases();
         storeService.printReport();

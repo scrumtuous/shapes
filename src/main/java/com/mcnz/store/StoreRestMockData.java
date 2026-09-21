@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.stereotype.Service;
 
-@Service
 public class StoreRestMockData {
 
     private final List<Map<String, Object>> customers = List.of(
