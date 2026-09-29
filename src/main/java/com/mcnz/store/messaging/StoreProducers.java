@@ -13,6 +13,7 @@ public class StoreProducers {
     private KafkaTemplate<String, Long> kafka;
 
     public void submit(Long purchaseId) {
+    	System.out.println("In the producer submitting the purchase id.");
         Long id = Objects.requireNonNull(purchaseId);
         kafka.send("purchases.validate", id).join();
     }

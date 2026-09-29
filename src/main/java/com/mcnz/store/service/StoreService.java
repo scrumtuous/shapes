@@ -13,6 +13,7 @@ import com.mcnz.store.Product;
 import com.mcnz.store.Purchase;
 import com.mcnz.store.PurchaseStatus;
 import com.mcnz.store.data.CustomerRepository;
+import com.mcnz.store.data.ProductRepository;
 import com.mcnz.store.data.PurchaseRepository;
 
 
@@ -24,6 +25,9 @@ public class StoreService {
 
     @Autowired
     private PurchaseRepository purchaseRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     private int purchaseRows;
     private int fullRefunds;
@@ -47,6 +51,20 @@ public class StoreService {
             pendingPurchase.addProduct(new Product(product.name, product.quantity, product.price));
         }
 
+        customer.addPurchase(pendingPurchase);
+        return purchaseRepository.save(pendingPurchase);
+    }
+
+    @Transactional
+    public Purchase createPendingPurchase(Long customerId, Long productId, int quantity) {
+        Customer customer = customerRepository.findById(customerId)
+            .orElseThrow(() -> new IllegalArgumentException("Customer not found: " + customerId));
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+
+        Purchase pendingPurchase = new Purchase(LocalDate.now(), customer);
+        pendingPurchase.status = PurchaseStatus.PENDING;
+        pendingPurchase.addProduct(new Product(product.name, quantity, product.price));
         customer.addPurchase(pendingPurchase);
         return purchaseRepository.save(pendingPurchase);
     }

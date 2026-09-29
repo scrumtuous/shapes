@@ -24,6 +24,7 @@ public class StoreConsumers {
 
     @KafkaListener(topics = "purchases.validate", groupId = "validators")
     public void validate(Long purchaseId) {
+    	System.out.println("In the validate listener");
         Purchase purchase = storeService.getPurchase(purchaseId);
         Product product = firstProduct(purchase);
 
@@ -40,6 +41,7 @@ public class StoreConsumers {
 
     @KafkaListener(topics = "purchases.process", groupId = "processors")
     public void process(Long purchaseId) {
+    	System.out.println("In the processing listener");
         try {
             TimeUnit.SECONDS.sleep(60);
         } catch (InterruptedException interruptedException) {
