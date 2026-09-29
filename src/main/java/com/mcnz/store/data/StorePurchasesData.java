@@ -1,4 +1,4 @@
-package com.mcnz.store;
+package com.mcnz.store.data;
 
 public class StorePurchasesData {
 

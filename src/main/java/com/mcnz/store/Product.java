@@ -1,10 +1,16 @@
 package com.mcnz.store;
 
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
+
+@Entity
 public class Product {
 
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
     public String name;
@@ -12,6 +18,8 @@ public class Product {
     public double price;
 
     
+    @ManyToOne
+    @JsonIgnore
     public Purchase purchase;
 
     public Product() {

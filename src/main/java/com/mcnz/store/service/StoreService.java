@@ -1,72 +1,82 @@
-package com.mcnz.store;
+package com.mcnz.store.service;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.mcnz.store.Address;
+import com.mcnz.store.Customer;
+import com.mcnz.store.Product;
+import com.mcnz.store.Purchase;
+import com.mcnz.store.PurchaseStatus;
+import com.mcnz.store.data.CustomerRepository;
+import com.mcnz.store.data.PurchaseRepository;
+
+
+@Service
 public class StoreService {
 
-    private final CustomerRepository customerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
-    private int rowsProcessed;
+    @Autowired
+    private PurchaseRepository purchaseRepository;
+
     private int purchaseRows;
-    private int refundRows;
     private int fullRefunds;
     private int partialRefunds;
     private int unmatchedRefunds;
 
-    public StoreService(CustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    @Transactional
+    public Purchase createPendingPurchase(Purchase sourcePurchase) {
+        Customer customer = customerRepository.findByName(sourcePurchase.customer.name).orElse(null);
+
+        if (customer == null) {
+            customer = customerRepository.save(
+                new Customer(sourcePurchase.customer.name, sourcePurchase.customer.address)
+            );
+        }
+
+        Purchase pendingPurchase = new Purchase(sourcePurchase.date, customer);
+        pendingPurchase.status = PurchaseStatus.PENDING;
+
+        for (Product product : sourcePurchase.products) {
+            pendingPurchase.addProduct(new Product(product.name, product.quantity, product.price));
+        }
+
+        customer.addPurchase(pendingPurchase);
+        return purchaseRepository.save(pendingPurchase);
+    }
+
+    @Transactional
+    public Purchase updatePurchaseStatus(Long purchaseId, PurchaseStatus status) {
+        Long id = java.util.Objects.requireNonNull(purchaseId);
+        Purchase purchase = purchaseRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Purchase not found: " + id));
+        purchase.status = status;
+        return purchaseRepository.save(purchase);
+    }
+
+    @Transactional(readOnly = true)
+    public PurchaseStatus getPurchaseStatus(Long purchaseId) {
+        Long id = java.util.Objects.requireNonNull(purchaseId);
+        return purchaseRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Purchase not found: " + id))
+                .status;
+    }
+
+    @Transactional(readOnly = true)
+    public Purchase getPurchase(Long purchaseId) {
+        Long id = java.util.Objects.requireNonNull(purchaseId);
+        return purchaseRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Purchase not found: " + id));
     }
 
     
-    public void processPurchases() {
-
-        for (String[] row : StorePurchasesData.ROWS) {
-            processRow(row);
-            rowsProcessed++;
-        }
-    }
-
-    private void processRow(String[] values) {
-
-        String transactionType = values[0];
-        LocalDate date = LocalDate.parse(values[1]);
-        String customerName = values[2];
-        String zip = values[3];
-        String city = values[4];
-        String productName = values[5];
-        int quantity = Integer.parseInt(values[6]);
-        double price = Double.parseDouble(values[7]);
-
-        if ("PURCHASE".equalsIgnoreCase(transactionType)) {
-
-            processPurchase(
-                date,
-                customerName,
-                zip,
-                city,
-                productName,
-                quantity,
-                price
-            );
-
-            purchaseRows++;
-            return;
-        }
-
-        if ("REFUND".equalsIgnoreCase(transactionType)) {
-
-            processRefund(customerName, productName, quantity);
-            refundRows++;
-            return;
-        }
-
-        System.out.println("Ignoring unknown transaction type: " + transactionType);
-    }
-
-    private void processPurchase(
+    @Transactional
+    public Purchase processPurchase(
             LocalDate date,
             String customerName,
             String zip,
@@ -76,6 +86,7 @@ public class StoreService {
             double price) {
 
         Customer customer = customerRepository.findByName(customerName).orElse(null);
+        Purchase purchase = null;
 
         if (customer == null) {
             customer = customerRepository.save(
@@ -85,8 +96,6 @@ public class StoreService {
                 )
             );
         }
-
-        Purchase purchase = null;
 
         for (Purchase candidate : customer.purchases) {
             if (candidate.date.equals(date)) {
@@ -100,14 +109,20 @@ public class StoreService {
             customer.addPurchase(purchase);
         }
 
+        purchase.status = PurchaseStatus.COMPLETED;
+
         purchase.addProduct(
             new Product(productName, quantity, price)
         );
 
         customerRepository.save(customer);
+        purchaseRows++;
+
+        return purchase;
     }
 
-    private void processRefund(
+    @Transactional
+    public void processRefund(
             String customerName,
             String productName,
             int refundQuantity) {
@@ -197,9 +212,7 @@ public class StoreService {
         System.out.println("========================================");
         System.out.println("STORE IMPORT REPORT");
         System.out.println("========================================");
-        System.out.println("Rows processed:      " + rowsProcessed);
         System.out.println("Purchase rows:       " + purchaseRows);
-        System.out.println("Refund rows:         " + refundRows);
         System.out.println("Full refunds:        " + fullRefunds);
         System.out.println("Partial refunds:     " + partialRefunds);
         System.out.println("Unmatched refunds:   " + unmatchedRefunds);
@@ -212,7 +225,6 @@ public class StoreService {
         double grandTotal = 0.0;
 
         List<Customer> customers = customerRepository.findAll();
-        customers.sort(Comparator.comparing(customer -> customer.name));
 
         for (Customer customer : customers) {
 
@@ -223,7 +235,6 @@ public class StoreService {
                 customer.address.zip
             );
 
-            customer.purchases.sort(Comparator.comparing(purchase -> purchase.date));
 
             for (Purchase purchase : customer.purchases) {
 
